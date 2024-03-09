@@ -7,10 +7,10 @@ Use this file to commit information clearly documenting your check-ins' content.
 For our project, our program analysis will focus on memory usage where we keep track of memory usage by checking the variable types of a given source code. We will keep track of memory usage of different control flow which will allow the use to determine the range/maximum amount of memory used. This will allow the user to determine the amount of memory the program it can use.
 
 ## TA discussion
-TBD
+During our last meeting, we discussed with the TA various project ideas, but ultimately settled on a memory tracker tool.
 
 ## Planned division of main responsibilities
-TBD
+Specific details about this have yet to be decided, however there will probably be a division of 1 or 2 members working on the UI (visualization or not, the component the users will interact with), a number of members working on the static analysis portion of the project, and the remainder will help out on the components that require the most attention (or perhaps even implement the dynamic analysis portion).
 
 ## Summary of progress
 We have decided that we will do the static analysis. However, we have not decided on whether we will do the dynamic analysis or do the visualization as part of our project. 
