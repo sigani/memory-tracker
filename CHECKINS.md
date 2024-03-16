@@ -1,7 +1,38 @@
 Use this file to commit information clearly documenting your check-ins' content. If you want to store more information/details besides what's required for the check-ins that's fine too. Make sure that your TA has had a chance to sign off on your check-in each week (before the deadline); typically you should discuss your material with them before finalizing it here.
 
-# Check-in 2
+# Check-in 3
 
+## Mockup
+
+**Memory Usage Analyzer for Java**
+1. Upload Source Code:
+  - There will be an upload button 
+2. Analyze Source Code
+  - There will be an analyze button
+  - Inputs will be automatically generated to collect enough data
+3. View Analysis Results
+  - Total memory usage and peak memory usage of a program for each input size
+    - Will be text-based; probably table
+    - If time permits, a line graph showing memory usage for each input
+  - Method-level analysis (for each method)
+    - Total memory usage and peak memory usage for each input size
+    - What percentage of total memory usage of the program it takes 
+        - Helps determine which method is heavy on memory usage and optimizes the program
+  - Branch-level analysis (for each branch)
+    - Total memory usage and peak memory usage for each input size
+    - What percentage of total memory usage of the program it takes 
+        - Helps determine which branch is heavy on memory usage and optimizes the program
+
+## First User Study
+- UBC student CS major
+  - Didn’t really see the point of branch-level analysis while he thought method-level analysis will be helpful
+  - Instead of branch-level analysis, he suggested including which code statement is taking the most memory, which helps optimize the program, in the method-level analysis
+
+## Any changes to the original design
+- Probably remove branch-level analysis and include which code statement is the most heavy on memory usage for each method.
+
+
+# Check-in 2
 
 ## Ideas
 For our project, our program analysis will focus on memory usage where we keep track of memory usage by checking the variable types of a given source code. We will keep track of memory usage of different control flow which will allow the use to determine the range/maximum amount of memory used. This will allow the user to determine the amount of memory the program it can use.
