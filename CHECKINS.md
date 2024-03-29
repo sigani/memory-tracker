@@ -3,8 +3,7 @@ Use this file to commit information clearly documenting your check-ins' content.
 # Check-in 5
 1. Status of final user study; any feedback and changes planned.
 
-We finished writing up the user study that shows different ways to display the data collected by our anlaysis and are in the process of gathering    
-feedback from other CS Students. 
+We finished writing up the user study that shows different ways to display the data collected by our anlaysis and are in the process of gathering feedback from other CS Students. 
 
 2. Plans for final video (possible draft version).
 
