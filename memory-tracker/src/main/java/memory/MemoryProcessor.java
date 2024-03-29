@@ -15,7 +15,6 @@ import spoon.reflect.visitor.CtScanner;
 import spoon.reflect.visitor.Filter;
 
 public class MemoryProcessor extends AbstractProcessor<CtClass<?>> {
-
     @Override
     public void process(CtClass<?> ctClass) {
         CtMethod<?> mainMethod = ctClass.getMethodsByName("main").get(0);

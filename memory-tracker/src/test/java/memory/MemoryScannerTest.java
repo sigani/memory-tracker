@@ -9,9 +9,9 @@ import spoon.reflect.declaration.CtClass;
 import spoon.reflect.factory.Factory;
 import spoon.support.QueueProcessingManager;
 
-public class MemoryProcessorTest {
+public class MemoryScannerTest {
     @Test
-    public void testReferenceProcessor() throws Exception {
+    public void testSimpleScanner() throws Exception {
         System.out.println("start of test");
         final String[] args = {
 //                "-i", "src/test/java/memory/",
@@ -28,7 +28,9 @@ public class MemoryProcessorTest {
         final Factory factory = launcher.getFactory();
         CtClass<?> sample = factory.Class().get("Sample");
         sample.accept(scanner);
-        System.out.println(sample);
+//        System.out.println(sample);
         System.out.println("end of test");
     }
+
+
 }
