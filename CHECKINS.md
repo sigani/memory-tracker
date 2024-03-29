@@ -1,5 +1,19 @@
 Use this file to commit information clearly documenting your check-ins' content. If you want to store more information/details besides what's required for the check-ins that's fine too. Make sure that your TA has had a chance to sign off on your check-in each week (before the deadline); typically you should discuss your material with them before finalizing it here.
 
+# Check-in 5
+1. Status of final user study; any feedback and changes planned.
+
+We finished writing up the user study that shows different ways to display the data collected by our anlaysis and are in the process of gathering feedback from other CS Students. 
+
+2. Plans for final video (possible draft version).
+
+No concrete plans yet, but it will probably be a slide presentation followed by a quick demonstration of our project.
+
+3. Planned timeline for the remaining days.
+
+Have the user study complete by the end of the week. Hopefully have a control flow senstive analysis by sometime next week and finish the implementation before april 8th.
+
+
 # Check-in 3
 
 ## Mockup
