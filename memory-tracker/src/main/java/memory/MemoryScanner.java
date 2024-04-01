@@ -141,7 +141,7 @@ public class MemoryScanner extends CtScanner {
             str = element.toString().substring(0, element.toString().indexOf("["));
         }
         return switch (str) {
-            case "byte" -> 1;
+            case "byte", "boolean" -> 1;
             case "short", "char" -> 2;
             case "int", "float" -> 4;
             default -> 8;
