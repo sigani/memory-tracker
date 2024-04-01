@@ -9,8 +9,8 @@ public class Sample {
 
         int userInput = Integer.parseInt(args[0]);
         int userInput2 = Integer.parseInt(args[1]);
-        int userInput3 = Integer.parseInt(args[2]);
-        int userInput4 = Integer.parseInt(args[3]);
+        short userInput3 = Integer.parseInt(args[2]);
+        long userInput4 = Integer.parseInt(args[3]);
 
         int[] array = new int[1000000];
 
@@ -18,6 +18,8 @@ public class Sample {
             int[] anotherArray = new int[500000];
             if (userInput2 < 15) {
                 int[] yetAnotherArray = new int[1000];
+            } else {
+                long[] evenMoreDataWhat = new long[8];
             }
         } else {
             if (userInput3 < 0) {

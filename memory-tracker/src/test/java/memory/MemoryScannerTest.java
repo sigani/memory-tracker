@@ -18,6 +18,7 @@ import java.util.Map;
 
 public class MemoryScannerTest {
 
+
     private static void prettyPrintMap(Map<MemoryKey, MemoryAlcValues> map) {
         for (Map.Entry<MemoryKey, MemoryAlcValues> entry : map.entrySet()) {
             System.out.println("Key: " + Arrays.toString(entry.getKey().getConditions()));
@@ -48,8 +49,6 @@ public class MemoryScannerTest {
         final Factory factory = launcher.getFactory();
         CtClass<?> sample = factory.Class().get("Sample");
         sample.accept(scanner);
-//        System.out.println(sample);
-//        System.out.println(scanner.getMemoryUsage());
         prettyPrintMap(scanner.getMemoryUsage());
         System.out.println("end of test");
     }

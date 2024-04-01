@@ -6,10 +6,7 @@ import spoon.reflect.visitor.CtScanner;
 import utils.MemoryAlcValues;
 import utils.MemoryKey;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 public class MemoryScanner extends CtScanner {
     // memorykey is wrapper class for array so that it could be used as a key
@@ -51,18 +48,13 @@ public class MemoryScanner extends CtScanner {
             vals.addValue(toAdd);
             memoryUsage.put(currentScope, vals);
         }
-//        memoryUsage.put(localVariable.getSimpleName(), memoryAllocated);
-//        System.out.println("Allocated memory for variable '" + localVariable.getSimpleName() + "': " + memoryAllocated + " bytes");
     }
 
     @Override
-    public <T> void visitCtNewArray(CtNewArray<T> newArray) {
-        int memoryAllocated = calculateMemory(newArray.getType()) * newArray.getElements().size();
+    public <T, A extends T> void visitCtAssignment(CtAssignment<T, A> assignement) {
+        int memoryAllocated = calculateMemory(assignement.getType());
         Map<String, Integer> toAdd = new HashMap<>();
-        toAdd.put(newArray.toString(), memoryAllocated);
-
-        MemoryKey scopeVariable = new MemoryKey();
-        scopeVariable.push(currentScope);
+        toAdd.put(assignement.getAssigned().toString(), memoryAllocated);
         if (memoryUsage.containsKey(currentScope)) {
             memoryUsage.get(currentScope).addValue(toAdd);
         } else {
@@ -82,21 +74,11 @@ public class MemoryScanner extends CtScanner {
         rememberScope(iMessedUp);
 
         for(CtStatement vars : forLoop.getForInit()) {
-            int memoryAllocated = calculateMemory(vars);
-            Map<String, Integer> toAdd = new HashMap<>();
-            toAdd.put(vars.toString(), memoryAllocated);
-            if (memoryUsage.containsKey(currentScope)) {
-                memoryUsage.get(currentScope).addValue(toAdd);
-            } else {
-                MemoryAlcValues vals = new MemoryAlcValues();
-                vals.addValue(toAdd);
-                memoryUsage.put(currentScope, vals);
-            }
+            vars.accept(this);
         }
 
         CtStatement body = forLoop.getBody();
         if (body != null) body.accept(this);
-
         forgetScope();
 
     }
@@ -107,22 +89,21 @@ public class MemoryScanner extends CtScanner {
         String exprAsString = expr.toString();
         String[] iMessedUp = {exprAsString};
 
-
         CtBlock<?> statements = ifElement.getThenStatement();
         if (statements != null) {
             // remember the scope we are in.
             rememberScope(iMessedUp);
-
             // analyze
             statements.accept(this);
-
             // pop
             forgetScope();
         }
 
         CtBlock<?> elseStatements = ifElement.getElseStatement();
         if (elseStatements != null) {
-            // remember the scope we are in.
+            // the opposite of the if statement
+            String oppositeValue = "!(" + exprAsString + ")";
+            iMessedUp = new String[]{oppositeValue};
             rememberScope(iMessedUp);
             // analyze
             elseStatements.accept(this);
@@ -132,25 +113,39 @@ public class MemoryScanner extends CtScanner {
     }
 
     private void forgetScope() {
-        scopeStack.pop();
-        currentScope = scopeStack.peek();
+        currentScope = scopeStack.pop();
     }
 
     private void rememberScope(String[] iMessedUp) {
         // remember the scope we are in.
         MemoryKey scope = new MemoryKey(iMessedUp);
-        if (currentScope.numConditions() > 1) {
-            for(String conds : currentScope.getConditions()) {
-                scope.push(conds);
-            }
-        }
         scope.push(currentScope);
-        scopeStack.push(scope);
+        scopeStack.push(currentScope);
         currentScope = scope;
+
     }
 
     private int calculateMemory(CtElement element) {
-        return 4; // Assuming 4 bytes per element for demonstration purposes
+        String[] primitiveDataTypes = {
+                "byte",
+                "short",
+                "int",
+                "long",
+                "float",
+                "double",
+                "char",
+                "boolean"
+        };
+        String str = element.toString();
+        if(element.toString().contains("[")){
+            str = element.toString().substring(0, element.toString().indexOf("["));
+        }
+        return switch (str) {
+            case "byte" -> 1;
+            case "short", "char" -> 2;
+            case "int", "float" -> 4;
+            default -> 8;
+        };
     }
 
     public Map<MemoryKey, MemoryAlcValues> getMemoryUsage() {
@@ -158,57 +153,3 @@ public class MemoryScanner extends CtScanner {
     }
 
 }
-
-//    @Override
-//    protected void enter(CtElement e) {
-//        System.out.println("----");
-//        System.out.println(e);
-//        System.out.println(e.getClass());
-//    }
-
-//    @Override
-//    public <T> void visitCtLocalVariable(CtLocalVariable<T> localVariable) {
-//        visited++;
-//        System.out.println(indent + localVariable);
-//    }
-//
-//    @Override
-//    public <T,A extends T> void visitCtAssignment(CtAssignment<T,A> a) {
-//        System.out.println(indent + a);
-//    }
-//
-//    @Override
-//    public void visitCtIf(CtIf ifElement) {
-//        CtStatement thenStatement = ifElement.getThenStatement();
-//        CtStatement elseStatement = ifElement.getElseStatement();
-//
-//        if (thenStatement != null) {
-////            System.out.println("entering THEN STATEMENTS");
-//            indent += "    ";
-//            thenStatement.accept(this);
-//            indent = indent.substring(0, indent.length()-4);
-////            System.out.println("EXITING THEN STATEMENTS");
-//        }
-//
-//        if (elseStatement != null) {
-////            System.out.println("entering ELSE STATEMENTS");
-//            indent += "    ";
-//            elseStatement.accept(this);
-//            indent = indent.substring(0, indent.length()-4);
-////            System.out.println("EXITING ELSE STATEMENTS");
-//        }
-//    }
-//
-//    public void visitCtFor(CtFor forLoop) {
-//        indent += "    ";
-//        List<CtStatement> initStatements = forLoop.getForInit();
-//        for (CtStatement initStatement : initStatements) {
-//            initStatement.accept(this);
-//        }
-//
-//        CtStatement bodyStatements = forLoop.getBody();
-//        if (bodyStatements != null) {
-//            bodyStatements.accept(this);
-//        }
-//        indent = indent.substring(0, indent.length()-4);
-//    }

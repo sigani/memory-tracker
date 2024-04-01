@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 public class MemoryAlcValues {
-    private LinkedList<Map<String,Integer>> values;
+    private final LinkedList<Map<String,Integer>> values;
 
     public MemoryAlcValues() {
         values = new LinkedList<Map<String,Integer>>();
