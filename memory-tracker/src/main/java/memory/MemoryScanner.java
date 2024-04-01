@@ -22,18 +22,26 @@ public class MemoryScanner extends CtScanner {
     // when leaving, pop the variables, add to memoryUsage map
     // there should always be one element in the stack to signify global scope of class
     private final Stack<MemoryKey> scopeStack;
+    private final Stack<MemoryAlcValues> allocStack;
 
     // keep track of what scope we are at
     // currentScope.push(...) to add another variable to scope
     private MemoryKey currentScope;
+    private MemoryAlcValues currentAllocs;
+
 
     MemoryScanner() {
         Stack<MemoryKey> stack = new Stack<>();
+        Stack<MemoryAlcValues> stack2 = new Stack<>();
         String[] emptyStringArray = {""};
         MemoryKey scope = new MemoryKey(emptyStringArray);
+        MemoryAlcValues allocs = new MemoryAlcValues();
+
         stack.push(scope);
         currentScope = scope;
         scopeStack = stack;
+        allocStack = stack2;
+        currentAllocs = allocs;
     }
 
     @Override
@@ -41,13 +49,7 @@ public class MemoryScanner extends CtScanner {
         int memoryAllocated = calculateMemory(localVariable.getType());
         Map<String, Integer> toAdd = new HashMap<>();
         toAdd.put(localVariable.getSimpleName(), memoryAllocated);
-        if (memoryUsage.containsKey(currentScope)) {
-            memoryUsage.get(currentScope).addValue(toAdd);
-        } else {
-            MemoryAlcValues vals = new MemoryAlcValues();
-            vals.addValue(toAdd);
-            memoryUsage.put(currentScope, vals);
-        }
+        currentAllocs.addValue(toAdd);
     }
 
     @Override
@@ -55,13 +57,8 @@ public class MemoryScanner extends CtScanner {
         int memoryAllocated = calculateMemory(assignement.getType());
         Map<String, Integer> toAdd = new HashMap<>();
         toAdd.put(assignement.getAssigned().toString(), memoryAllocated);
-        if (memoryUsage.containsKey(currentScope)) {
-            memoryUsage.get(currentScope).addValue(toAdd);
-        } else {
-            MemoryAlcValues vals = new MemoryAlcValues();
-            vals.addValue(toAdd);
-            memoryUsage.put(currentScope, vals);
-        }
+        currentAllocs.addValue(toAdd);
+
     }
 
     @Override
@@ -79,6 +76,7 @@ public class MemoryScanner extends CtScanner {
 
         CtStatement body = forLoop.getBody();
         if (body != null) body.accept(this);
+
         forgetScope();
 
     }
@@ -104,6 +102,7 @@ public class MemoryScanner extends CtScanner {
             // the opposite of the if statement
             String oppositeValue = "!(" + exprAsString + ")";
             iMessedUp = new String[]{oppositeValue};
+            // remember the scope
             rememberScope(iMessedUp);
             // analyze
             elseStatements.accept(this);
@@ -113,19 +112,41 @@ public class MemoryScanner extends CtScanner {
     }
 
     private void forgetScope() {
+        // add to map here
+        if (memoryUsage.containsKey(currentScope)) {
+            for(Map<String, Integer> val : currentAllocs.getValues())
+                memoryUsage.get(currentScope).addValue(val);
+        } else {
+            MemoryAlcValues vals = new MemoryAlcValues();
+            for(Map<String, Integer> val : currentAllocs.getValues())
+                vals.addValue(val);
+            memoryUsage.put(currentScope, vals);
+        }
+
         currentScope = scopeStack.pop();
+        currentAllocs = allocStack.pop();
     }
 
     private void rememberScope(String[] iMessedUp) {
         // remember the scope we are in.
         MemoryKey scope = new MemoryKey(iMessedUp);
-        scope.push(currentScope);
+        MemoryAlcValues scopeAlloc = new MemoryAlcValues();
+
         scopeStack.push(currentScope);
+        allocStack.push(currentAllocs);
+
+        scope.push(currentScope);
+        for(Map<String, Integer> i : currentAllocs.getValues()) {
+            scopeAlloc.addValue(i);
+        }
+
         currentScope = scope;
+        currentAllocs = scopeAlloc;
 
     }
 
     private int calculateMemory(CtElement element) {
+        // this was just for my reference
         String[] primitiveDataTypes = {
                 "byte",
                 "short",
@@ -149,6 +170,9 @@ public class MemoryScanner extends CtScanner {
     }
 
     public Map<MemoryKey, MemoryAlcValues> getMemoryUsage() {
+        if (!memoryUsage.containsKey(currentScope)) {
+            memoryUsage.put(currentScope, currentAllocs);
+        }
         return memoryUsage;
     }
 

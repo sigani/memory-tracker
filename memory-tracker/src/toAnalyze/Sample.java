@@ -24,7 +24,10 @@ public class Sample {
         } else {
             if (userInput3 < 0) {
                 int[] whatAnotherArray = new int[6969];
+            } else {
+                short[] rickAndMorty = new short[1234];
             }
+            boolean newjeansIsSoGood = true;
         }
 
         int[][] arrayOfArrays;
