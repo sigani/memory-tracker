@@ -21,12 +21,21 @@ public class MemoryScanner extends CtScanner {
     // when entering an if/else, push onto it the condition variables
     // when leaving, pop the variables, add to memoryUsage map
     // there should always be one element in the stack to signify global scope of class
+    // basically just call rememberScope when entering branch
+    // and forgetScope when leaving branch
     private final Stack<MemoryKey> scopeStack;
     private final Stack<MemoryAlcValues> allocStack;
 
     // keep track of what scope we are at
-    // currentScope.push(...) to add another variable to scope
+    // calling rememberScope(string[] a)
+    // where the param is the string version of what the parameters need to be in order to
+    // enter the branch
+    // will also update currentScope
+    // rememberScope and forgetScope methods takes care of this anyways
     private MemoryKey currentScope;
+
+    // currentAllocs.addValue(Map<String,Integer> a), where string is variable name and integer is amount of bytes it takes
+    // rememberScope and forgetScope methods takes care of this anyways
     private MemoryAlcValues currentAllocs;
 
 
@@ -58,9 +67,13 @@ public class MemoryScanner extends CtScanner {
         Map<String, Integer> toAdd = new HashMap<>();
         toAdd.put(assignement.getAssigned().toString(), memoryAllocated);
         currentAllocs.addValue(toAdd);
-
     }
 
+    // todo: override visitCtWhile and analyze as well
+    // i forgot to do this, its probably similar to for loop
+
+    // todo: reconsider this function
+    // not too sure if this is sufficient for a loop
     @Override
     public void visitCtFor(CtFor forLoop) {
 
@@ -112,7 +125,7 @@ public class MemoryScanner extends CtScanner {
     }
 
     private void forgetScope() {
-        // add to map here
+        // add to map/abstract state here
         if (memoryUsage.containsKey(currentScope)) {
             for(Map<String, Integer> val : currentAllocs.getValues())
                 memoryUsage.get(currentScope).addValue(val);
@@ -123,6 +136,7 @@ public class MemoryScanner extends CtScanner {
             memoryUsage.put(currentScope, vals);
         }
 
+        // get the scope and allocations from before we entered the branch
         currentScope = scopeStack.pop();
         currentAllocs = allocStack.pop();
     }
@@ -132,14 +146,17 @@ public class MemoryScanner extends CtScanner {
         MemoryKey scope = new MemoryKey(iMessedUp);
         MemoryAlcValues scopeAlloc = new MemoryAlcValues();
 
+        // push onto stack the current scope we are in and the allocations of that scope
         scopeStack.push(currentScope);
         allocStack.push(currentAllocs);
 
+        // make a copy of the scope and allocations
         scope.push(currentScope);
         for(Map<String, Integer> i : currentAllocs.getValues()) {
             scopeAlloc.addValue(i);
         }
 
+        // save the current scope and allocations
         currentScope = scope;
         currentAllocs = scopeAlloc;
 
@@ -147,16 +164,9 @@ public class MemoryScanner extends CtScanner {
 
     private int calculateMemory(CtElement element) {
         // this was just for my reference
-        String[] primitiveDataTypes = {
-                "byte",
-                "short",
-                "int",
-                "long",
-                "float",
-                "double",
-                "char",
-                "boolean"
-        };
+        // todo: make this more accurate
+        // doesn't take into account arrays
+        // might have to change signature for this
         String str = element.toString();
         if(element.toString().contains("[")){
             str = element.toString().substring(0, element.toString().indexOf("["));
@@ -165,11 +175,17 @@ public class MemoryScanner extends CtScanner {
             case "byte", "boolean" -> 1;
             case "short", "char" -> 2;
             case "int", "float" -> 4;
-            default -> 8;
+            default -> 8; // double
         };
     }
 
     public Map<MemoryKey, MemoryAlcValues> getMemoryUsage() {
+        // fix this, this was my very lazy way of including the global scope
+        // ideally we should add the global scope when we finish analyzing the program
+        // this probably involves:
+        // overriding some visit function (visitCtBlock or Method or something like that)
+        // calling accept(this) on the parameter
+        // then put these three lines after the accept call
         if (!memoryUsage.containsKey(currentScope)) {
             memoryUsage.put(currentScope, currentAllocs);
         }
