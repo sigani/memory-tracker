@@ -3,67 +3,177 @@ package memory;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.visitor.CtScanner;
-import spoon.processing.AbstractProcessor;
-import spoon.support.reflect.code.CtBlockImpl;
+import utils.MemoryAlcValues;
+import utils.MemoryKey;
 
-import java.util.List;
+import java.util.*;
 
 public class MemoryScanner extends CtScanner {
-    public int visited = 0;
-    private String indent = "";
+    // memorykey is wrapper class for array so that it could be used as a key
+        // lets define empty array as global scope
+        // and lets define each string inside the key as the condition variables
+    // and lets define the values to be a list of maps
+        // of variable names as keys
+        // and amount of bytes they take up as integers
+    // both of these classes are defined in utils module
+    private final Map<MemoryKey, MemoryAlcValues> memoryUsage = new HashMap<>();
 
-//    @Override
-//    protected void enter(CtElement e) {
-//        System.out.println("----");
-//        System.out.println(e);
-//        System.out.println(e.getClass());
-//    }
+    // when entering an if/else, push onto it the condition variables
+    // when leaving, pop the variables, add to memoryUsage map
+    // there should always be one element in the stack to signify global scope of class
+    private final Stack<MemoryKey> scopeStack;
+    private final Stack<MemoryAlcValues> allocStack;
 
-    @Override
-    public <T> void visitCtLocalVariable(CtLocalVariable<T> localVariable) {
-        visited++;
-        System.out.println(indent + localVariable);
+    // keep track of what scope we are at
+    // currentScope.push(...) to add another variable to scope
+    private MemoryKey currentScope;
+    private MemoryAlcValues currentAllocs;
+
+
+    MemoryScanner() {
+        Stack<MemoryKey> stack = new Stack<>();
+        Stack<MemoryAlcValues> stack2 = new Stack<>();
+        String[] emptyStringArray = {""};
+        MemoryKey scope = new MemoryKey(emptyStringArray);
+        MemoryAlcValues allocs = new MemoryAlcValues();
+
+        stack.push(scope);
+        currentScope = scope;
+        scopeStack = stack;
+        allocStack = stack2;
+        currentAllocs = allocs;
     }
 
     @Override
-    public <T,A extends T> void visitCtAssignment(CtAssignment<T,A> a) {
-        System.out.println(indent + a);
+    public <T> void visitCtLocalVariable(CtLocalVariable<T> localVariable) {
+        int memoryAllocated = calculateMemory(localVariable.getType());
+        Map<String, Integer> toAdd = new HashMap<>();
+        toAdd.put(localVariable.getSimpleName(), memoryAllocated);
+        currentAllocs.addValue(toAdd);
+    }
+
+    @Override
+    public <T, A extends T> void visitCtAssignment(CtAssignment<T, A> assignement) {
+        int memoryAllocated = calculateMemory(assignement.getType());
+        Map<String, Integer> toAdd = new HashMap<>();
+        toAdd.put(assignement.getAssigned().toString(), memoryAllocated);
+        currentAllocs.addValue(toAdd);
+
+    }
+
+    @Override
+    public void visitCtFor(CtFor forLoop) {
+
+        CtExpression<?> expr = forLoop.getExpression();
+        String exprAsString = expr.toString();
+        String[] iMessedUp = {exprAsString};
+
+        rememberScope(iMessedUp);
+
+        for(CtStatement vars : forLoop.getForInit()) {
+            vars.accept(this);
+        }
+
+        CtStatement body = forLoop.getBody();
+        if (body != null) body.accept(this);
+
+        forgetScope();
+
     }
 
     @Override
     public void visitCtIf(CtIf ifElement) {
-        CtStatement thenStatement = ifElement.getThenStatement();
-        CtStatement elseStatement = ifElement.getElseStatement();
+        CtExpression<?> expr = ifElement.getCondition();
+        String exprAsString = expr.toString();
+        String[] iMessedUp = {exprAsString};
 
-        if (thenStatement != null) {
-//            System.out.println("entering THEN STATEMENTS");
-            indent += "    ";
-            thenStatement.accept(this);
-            indent = indent.substring(0, indent.length()-4);
-//            System.out.println("EXITING THEN STATEMENTS");
+        CtBlock<?> statements = ifElement.getThenStatement();
+        if (statements != null) {
+            // remember the scope we are in.
+            rememberScope(iMessedUp);
+            // analyze
+            statements.accept(this);
+            // pop
+            forgetScope();
         }
 
-        if (elseStatement != null) {
-//            System.out.println("entering ELSE STATEMENTS");
-            indent += "    ";
-            elseStatement.accept(this);
-            indent = indent.substring(0, indent.length()-4);
-//            System.out.println("EXITING ELSE STATEMENTS");
+        CtBlock<?> elseStatements = ifElement.getElseStatement();
+        if (elseStatements != null) {
+            // the opposite of the if statement
+            String oppositeValue = "!(" + exprAsString + ")";
+            iMessedUp = new String[]{oppositeValue};
+            // remember the scope
+            rememberScope(iMessedUp);
+            // analyze
+            elseStatements.accept(this);
+            // pop
+            forgetScope();
         }
     }
 
-    public void visitCtFor(CtFor forLoop) {
-        indent += "    ";
-        List<CtStatement> initStatements = forLoop.getForInit();
-        for (CtStatement initStatement : initStatements) {
-            initStatement.accept(this);
+    private void forgetScope() {
+        // add to map here
+        if (memoryUsage.containsKey(currentScope)) {
+            for(Map<String, Integer> val : currentAllocs.getValues())
+                memoryUsage.get(currentScope).addValue(val);
+        } else {
+            MemoryAlcValues vals = new MemoryAlcValues();
+            for(Map<String, Integer> val : currentAllocs.getValues())
+                vals.addValue(val);
+            memoryUsage.put(currentScope, vals);
         }
 
-        CtStatement bodyStatements = forLoop.getBody();
-        if (bodyStatements != null) {
-            bodyStatements.accept(this);
+        currentScope = scopeStack.pop();
+        currentAllocs = allocStack.pop();
+    }
+
+    private void rememberScope(String[] iMessedUp) {
+        // remember the scope we are in.
+        MemoryKey scope = new MemoryKey(iMessedUp);
+        MemoryAlcValues scopeAlloc = new MemoryAlcValues();
+
+        scopeStack.push(currentScope);
+        allocStack.push(currentAllocs);
+
+        scope.push(currentScope);
+        for(Map<String, Integer> i : currentAllocs.getValues()) {
+            scopeAlloc.addValue(i);
         }
-        indent = indent.substring(0, indent.length()-4);
+
+        currentScope = scope;
+        currentAllocs = scopeAlloc;
+
+    }
+
+    private int calculateMemory(CtElement element) {
+        // this was just for my reference
+        String[] primitiveDataTypes = {
+                "byte",
+                "short",
+                "int",
+                "long",
+                "float",
+                "double",
+                "char",
+                "boolean"
+        };
+        String str = element.toString();
+        if(element.toString().contains("[")){
+            str = element.toString().substring(0, element.toString().indexOf("["));
+        }
+        return switch (str) {
+            case "byte", "boolean" -> 1;
+            case "short", "char" -> 2;
+            case "int", "float" -> 4;
+            default -> 8;
+        };
+    }
+
+    public Map<MemoryKey, MemoryAlcValues> getMemoryUsage() {
+        if (!memoryUsage.containsKey(currentScope)) {
+            memoryUsage.put(currentScope, currentAllocs);
+        }
+        return memoryUsage;
     }
 
 }
