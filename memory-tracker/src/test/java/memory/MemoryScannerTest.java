@@ -53,5 +53,47 @@ public class MemoryScannerTest {
         System.out.println("end of test");
     }
 
+    @Test
+    public void testMemoryReportMAX() throws Exception {
+        final String[] args = {
+//                "-i", "src/test/java/memory/",
+//              it looks like this targets which file to "analyze"
+                "-i", "src/toAnalyze/",
+                "-o", "./target/spooned/",
+        };
+
+        final Launcher launcher = new Launcher();
+        launcher.setArgs(args);
+        launcher.run();
+
+        MemoryScanner scanner = new MemoryScanner();
+        final Factory factory = launcher.getFactory();
+        CtClass<?> sample = factory.Class().get("Sample");
+        sample.accept(scanner);
+        MemoryReport report = new MemoryReport(scanner.getMemoryUsage());
+        report.getExtremesReport(true);
+    }
+
+    @Test
+    public void testMemoryReportMIN() throws Exception {
+        final String[] args = {
+//                "-i", "src/test/java/memory/",
+//              it looks like this targets which file to "analyze"
+                "-i", "src/toAnalyze/",
+                "-o", "./target/spooned/",
+        };
+
+        final Launcher launcher = new Launcher();
+        launcher.setArgs(args);
+        launcher.run();
+
+        MemoryScanner scanner = new MemoryScanner();
+        final Factory factory = launcher.getFactory();
+        CtClass<?> sample = factory.Class().get("Sample");
+        sample.accept(scanner);
+        MemoryReport report = new MemoryReport(scanner.getMemoryUsage());
+        report.getExtremesReport(false);
+    }
+
 
 }
