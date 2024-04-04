@@ -9,8 +9,8 @@ import utils.MemoryKey;
 import java.util.*;
 
 public class MemoryScanner extends CtScanner {
-    // memorykey is wrapper class for array so that it could be used as a key
-        // lets define empty array as global scope
+    // memorykey is wrapper class for array so that it could be  as a key
+        // lets define empty array as global scopeused
         // and lets define each string inside the key as the condition variables
     // and lets define the values to be a list of maps
         // of variable names as keys
