@@ -36,7 +36,7 @@ public class MemoryReport {
             return null;
         }
 
-        System.out.println("The input combination that uses the most memory is: ");
+        System.out.println("The input combination that uses the" +  (isMax ? " most" : " least") + " memory is: ");
         for (String condition : biggestKey.getConditions()) {
             System.out.println("\t" + condition);
         }
