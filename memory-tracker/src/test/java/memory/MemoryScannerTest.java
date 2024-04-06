@@ -93,6 +93,9 @@ public class MemoryScannerTest {
         sample.accept(scanner);
         MemoryReport report = new MemoryReport(scanner.getMemoryUsage());
         report.getExtremesReport(false);
+        for (MemoryKey key : scanner.getUserConditionals()) {
+            System.out.println(Arrays.toString(key.getConditions()));
+        }
     }
 
 

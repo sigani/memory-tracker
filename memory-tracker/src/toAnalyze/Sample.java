@@ -11,13 +11,29 @@ public class Sample {
         int userInput2 = Integer.parseInt(args[1]);
         short userInput3 = Integer.parseInt(args[2]);
         long userInput4 = Integer.parseInt(args[3]);
+        int test = userInput;
+        int[] test2 = new int[userInput2];
+        String test3 = "args";
+        int notUserInput = 88;
 
-        int[] array = new int[1000000];
+        int[] array = new int[10];
+
+        if(notUserInput > 0) {
+            int one = 1;
+            int two = 2;
+            int three = 3;
+            int four = 4;
+            long whaat = 200;
+            int[] lotsOfMemory = new int[2000];
+            if(notUserInput > 80) {
+                notUserInput = userInput;
+            }
+        }
 
         if (userInput > 5) {
-            int[] anotherArray = new int[500000];
+            int[] anotherArray = new int[5];
             if (userInput2 < 15) {
-                int[] yetAnotherArray = new int[1000];
+                int[] yetAnotherArray = new int[9999999];
             } else {
                 long[] evenMoreDataWhat = new long[8];
             }

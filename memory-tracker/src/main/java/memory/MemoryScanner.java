@@ -2,7 +2,10 @@ package memory;
 
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtParameter;
 import spoon.reflect.visitor.CtScanner;
+import spoon.support.reflect.code.CtLiteralImpl;
+import spoon.support.reflect.code.CtNewArrayImpl;
 import utils.MemoryAlcValues;
 import utils.MemoryKey;
 
@@ -26,6 +29,11 @@ public class MemoryScanner extends CtScanner {
     private final Stack<MemoryKey> scopeStack;
     private final Stack<MemoryAlcValues> allocStack;
 
+    // variables that are influenced by the parameters/inputs
+    private final LinkedList<String> userInputs;
+    // conditional statements that are influenced by the parameters/inputs
+    private final LinkedList<MemoryKey> userConditionals;
+
     // keep track of what scope we are at
     // calling rememberScope(string[] a)
     // where the param is the string version of what the parameters need to be in order to
@@ -33,11 +41,9 @@ public class MemoryScanner extends CtScanner {
     // will also update currentScope
     // rememberScope and forgetScope methods takes care of this anyways
     private MemoryKey currentScope;
-
     // currentAllocs.addValue(Map<String,Integer> a), where string is variable name and integer is amount of bytes it takes
     // rememberScope and forgetScope methods takes care of this anyways
     private MemoryAlcValues currentAllocs;
-
 
     MemoryScanner() {
         Stack<MemoryKey> stack = new Stack<>();
@@ -51,6 +57,13 @@ public class MemoryScanner extends CtScanner {
         scopeStack = stack;
         allocStack = stack2;
         currentAllocs = allocs;
+        userInputs = new LinkedList<>();
+        userConditionals = new LinkedList<>();
+    }
+
+    @Override
+    public <T> void visitCtParameter(CtParameter<T> parameter) {
+        userInputs.push(parameter.getSimpleName());
     }
 
     @Override
@@ -59,6 +72,30 @@ public class MemoryScanner extends CtScanner {
         Map<String, Integer> toAdd = new HashMap<>();
         toAdd.put(localVariable.getSimpleName(), memoryAllocated);
         currentAllocs.addValue(toAdd);
+
+        // check to see if paramater influenced by user input
+        if(localVariable.getAssignment() != null) {
+            Class<?> classToCheck = localVariable.getAssignment().getClass();
+            // literals never it
+            if (classToCheck != CtLiteralImpl.class) {
+                // split the input string by spaces, commas, and brackets
+                // string manipulation goes crazy
+                String[] tokens = localVariable.getAssignment().toString().split("[\\s,\\[\\]()]+");
+                for(String token : tokens) {
+                    for(String inputs : userInputs) {
+                        if (token.contains(inputs)) {
+                            userInputs.push(localVariable.getSimpleName());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    @Override
+    public <T> void visitCtInvocation(CtInvocation<T> invocation) {
+//        System.out.println(invocation);
     }
 
     @Override
@@ -67,6 +104,25 @@ public class MemoryScanner extends CtScanner {
         Map<String, Integer> toAdd = new HashMap<>();
         toAdd.put(assignement.getAssigned().toString(), memoryAllocated);
         currentAllocs.addValue(toAdd);
+        // check to see if paramater influenced by user input
+        if(assignement.getAssignment() != null) {
+            Class<?> classToCheck = assignement.getAssignment().getClass();
+            // literals never it
+            if (classToCheck != CtLiteralImpl.class) {
+                // split the input string by spaces, commas, and brackets
+                // string manipulation goes crazy
+                String[] tokens = assignement.getAssignment().toString().split("[\\s,\\[\\]()]+");
+                for(String token : tokens) {
+                    for(String inputs : userInputs) {
+                        if (token.contains(inputs)) {
+                            userInputs.push(assignement.getAssigned().toString());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     // todo: override visitCtWhile and analyze as well
@@ -146,6 +202,17 @@ public class MemoryScanner extends CtScanner {
         MemoryKey scope = new MemoryKey(iMessedUp);
         MemoryAlcValues scopeAlloc = new MemoryAlcValues();
 
+        // check to see if conditionals are influenced by parameters/user input
+        String[] exprTokens = iMessedUp[0].split("[\\s,\\[\\]()]+");
+        for(String token : exprTokens) {
+            for(String inputs : userInputs) {
+                if (token.contains(inputs)) {
+                    userConditionals.push(scope);
+                    break;
+                }
+            }
+        }
+
         // push onto stack the current scope we are in and the allocations of that scope
         scopeStack.push(currentScope);
         allocStack.push(currentAllocs);
@@ -190,6 +257,10 @@ public class MemoryScanner extends CtScanner {
             memoryUsage.put(currentScope, currentAllocs);
         }
         return memoryUsage;
+    }
+
+    public LinkedList<MemoryKey> getUserConditionals() {
+        return this.userConditionals;
     }
 
 }
