@@ -92,7 +92,6 @@ public class MemoryScanner extends CtScanner {
                                 varsToInputs.put(userInputs.peek(), new LinkedList<>());
                             }
                             varsToInputs.get(userInputs.peek()).push(localVariable.getAssignment().toString());
-                            System.out.println();
                             break;
                         }
                     }
@@ -124,6 +123,10 @@ public class MemoryScanner extends CtScanner {
                     for(String inputs : userInputs) {
                         if (token.contains(inputs)) {
                             userInputs.push(assignement.getAssigned().toString());
+                            if(!varsToInputs.containsKey(userInputs.peek())) {
+                                varsToInputs.put(userInputs.peek(), new LinkedList<>());
+                            }
+                            varsToInputs.get(userInputs.peek()).push(assignement.getAssignment().toString());
                             break;
                         }
                     }
