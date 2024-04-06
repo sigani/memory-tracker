@@ -96,6 +96,14 @@ public class MemoryScannerTest {
         for (MemoryKey key : scanner.getUserConditionals()) {
             System.out.println(Arrays.toString(key.getConditions()));
         }
+        Map<String, LinkedList<String>> varstoInputs = scanner.getVarsToInputs();
+        for(Map.Entry<String, LinkedList<String>> entry : varstoInputs.entrySet()) {
+            System.out.println(entry.getKey());
+            for(String val : varstoInputs.get(entry.getKey())) {
+                System.out.println("\t"+val);
+            }
+
+        }
     }
 
 

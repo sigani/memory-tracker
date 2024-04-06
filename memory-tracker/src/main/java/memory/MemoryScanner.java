@@ -33,6 +33,8 @@ public class MemoryScanner extends CtScanner {
     private final LinkedList<String> userInputs;
     // conditional statements that are influenced by the parameters/inputs
     private final LinkedList<MemoryKey> userConditionals;
+    // key = variable name, value = potential values of variable
+    private final Map<String, LinkedList<String>> varsToInputs;
 
     // keep track of what scope we are at
     // calling rememberScope(string[] a)
@@ -59,6 +61,7 @@ public class MemoryScanner extends CtScanner {
         currentAllocs = allocs;
         userInputs = new LinkedList<>();
         userConditionals = new LinkedList<>();
+        varsToInputs = new HashMap<>();
     }
 
     @Override
@@ -85,6 +88,11 @@ public class MemoryScanner extends CtScanner {
                     for(String inputs : userInputs) {
                         if (token.contains(inputs)) {
                             userInputs.push(localVariable.getSimpleName());
+                            if(!varsToInputs.containsKey(userInputs.peek())) {
+                                varsToInputs.put(userInputs.peek(), new LinkedList<>());
+                            }
+                            varsToInputs.get(userInputs.peek()).push(localVariable.getAssignment().toString());
+                            System.out.println();
                             break;
                         }
                     }
@@ -261,6 +269,10 @@ public class MemoryScanner extends CtScanner {
 
     public LinkedList<MemoryKey> getUserConditionals() {
         return this.userConditionals;
+    }
+
+    public Map<String, LinkedList<String>> getVarsToInputs() {
+        return this.varsToInputs;
     }
 
 }

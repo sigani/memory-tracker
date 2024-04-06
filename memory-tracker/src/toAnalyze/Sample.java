@@ -24,7 +24,7 @@ public class Sample {
             int three = 3;
             int four = 4;
             long whaat = 200;
-            int[] lotsOfMemory = new int[2000];
+            int[] lotsOfMemory = new int[9999999];
             if(notUserInput > 80) {
                 notUserInput = userInput;
             }
@@ -33,7 +33,7 @@ public class Sample {
         if (userInput > 5) {
             int[] anotherArray = new int[5];
             if (userInput2 < 15) {
-                int[] yetAnotherArray = new int[9999999];
+                int[] yetAnotherArray = new int[2000];
             } else {
                 long[] evenMoreDataWhat = new long[8];
             }
