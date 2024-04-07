@@ -285,8 +285,8 @@ public class MemoryScanner extends CtScanner {
             }
 
             if (!assignment.contains("new") && !assignment.contains("(")) {
-                System.out.println("Memory size => " + 0);
-                return 0; // no new memory allocaiton
+                System.out.println("Memory size => " + 8);
+                return 8; // no new memory allocaiton but creating a new pointer (8 bytes for reference variable)
             }
 
             // only certain built in objects are supported; others are estimated to be 8 bytes
