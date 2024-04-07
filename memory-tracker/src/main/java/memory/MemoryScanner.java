@@ -2,6 +2,7 @@ package memory;
 
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtField;
 import spoon.reflect.declaration.CtParameter;
 import spoon.reflect.visitor.CtScanner;
 import spoon.support.reflect.code.CtLiteralImpl;
@@ -65,13 +66,18 @@ public class MemoryScanner extends CtScanner {
     }
 
     @Override
+    public <T> void visitCtField(CtField<T> f) {
+        System.out.println("CtField => " + f.getAssignment());
+    }
+
+    @Override
     public <T> void visitCtParameter(CtParameter<T> parameter) {
         userInputs.push(parameter.getSimpleName());
     }
 
     @Override
     public <T> void visitCtLocalVariable(CtLocalVariable<T> localVariable) {
-        int memoryAllocated = calculateMemory(localVariable.getType());
+        int memoryAllocated = calculateMemory(localVariable);
         Map<String, Integer> toAdd = new HashMap<>();
         toAdd.put(localVariable.getSimpleName(), memoryAllocated);
         currentAllocs.addValue(toAdd);
@@ -107,7 +113,8 @@ public class MemoryScanner extends CtScanner {
 
     @Override
     public <T, A extends T> void visitCtAssignment(CtAssignment<T, A> assignement) {
-        int memoryAllocated = calculateMemory(assignement.getType());
+        System.out.println("CtAssignment => " + assignement);
+        int memoryAllocated = calculateMemory(assignement);
         Map<String, Integer> toAdd = new HashMap<>();
         toAdd.put(assignement.getAssigned().toString(), memoryAllocated);
         currentAllocs.addValue(toAdd);
@@ -242,19 +249,77 @@ public class MemoryScanner extends CtScanner {
 
     private int calculateMemory(CtElement element) {
         // this was just for my reference
-        // todo: make this more accurate
         // doesn't take into account arrays
         // might have to change signature for this
-        String str = element.toString();
-        if(element.toString().contains("[")){
-            str = element.toString().substring(0, element.toString().indexOf("["));
+        String assignment;
+        String type;
+        if (element instanceof CtLocalVariable) {
+            // Cast the element to a type that has the getAssignment method
+            type = (((CtLocalVariable) element).getType() != null) ? ((CtLocalVariable) element).getType().toString() : null;
+            assignment = (((CtLocalVariable) element).getAssignment() != null) ? ((CtLocalVariable) element).getAssignment().toString() : null;
+        } else if (element instanceof CtAssignment) {
+            type = (((CtAssignment) element).getType() != null) ? ((CtAssignment) element).getType().toString() : null;
+            assignment = (((CtAssignment) element).getAssignment() != null) ? ((CtAssignment) element).getAssignment().toString() : null;
+        } else {
+            type = null;
+            assignment = null;
         }
-        return switch (str) {
-            case "byte", "boolean" -> 1;
-            case "short", "char" -> 2;
-            case "int", "float" -> 4;
-            default -> 8; // double
-        };
+
+        if (assignment == null)  {
+            System.out.println("Memory size => " + 0);
+            return 0; // no new memory allocation
+        }
+
+        // TODO: what if assignment is funciton
+
+        System.out.println("CtType => " + type);
+        System.out.println("CtExpression => " + assignment);
+
+        int elementSize = getPrimitiveSize(type);
+
+        if (elementSize < 0) {
+            if (type.contains("String") && assignment.charAt(0) == '\"') {
+                int ret = (assignment.length() - 2) * 2 + 16;
+                System.out.println("Memory size => " + ret);
+                return (assignment.length() - 2) * 2 + 16; // number of chars * 2 + object overhead
+            }
+
+            if (!assignment.contains("new") && !assignment.contains("(")) {
+                System.out.println("Memory size => " + 0);
+                return 0; // no new memory allocaiton
+            }
+
+            // only certain built in objects are supported; others are estimated to be 8 bytes
+            elementSize = getPrimitiveSize(type.toLowerCase()) >= 0 ? getPrimitiveSize(type.toLowerCase()) : 8;
+
+            elementSize += 16; // adding object overhead
+        }
+
+        if(!type.contains("[")){
+            System.out.println("Memory size => " + elementSize);
+            return elementSize;
+        }
+
+        // TODO: consider a case where it is variable inside []
+        int arrSize = Integer.parseInt(assignment.substring(assignment.indexOf("[") + 1, assignment.indexOf("]")));
+
+        int ret = elementSize * arrSize + 16;
+        System.out.println("Memory size => " + ret);
+        return elementSize * arrSize + 16; // adding array object overhead 16
+    }
+
+    private int getPrimitiveSize(String type) {
+        if (type.contains("byte") || type.contains("boolean")) {
+            return 1;
+        } else if (type.contains("short") || type.contains("char")) {
+            return 2;
+        } else if (type.contains("int") || type.contains("float")) {
+            return 4;
+        } else if (type.contains("double") || type.contains("long")){
+            return 8;
+        } else {
+            return -1;
+        }
     }
 
     public Map<MemoryKey, MemoryAlcValues> getMemoryUsage() {
