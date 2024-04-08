@@ -354,4 +354,7 @@ public class MemoryScanner extends CtScanner {
         return this.varsToInputs;
     }
 
+    public LinkedList<String> getUserInput() {
+        return this.userInputs;
+    }
 }
