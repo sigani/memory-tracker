@@ -21,10 +21,14 @@ public class Sample {
         short userInput3 = Integer.parseInt(args[2]);
         long userInput4 = Integer.parseInt(args[3]);
         int test = userInput;
-//        int[] test2 = new int[userInput2];
+        int[] test2 = new int[userInput2];
         String[] test3 = new String[4];
         String test4 = "args";
         int notUserInput = 88;
+
+        int notUserInputCopy = notUserInput;
+
+        int[] variableDependentArr = new int[notUserInputCopy];
 
         int[] array = new int[10];
 
