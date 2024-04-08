@@ -84,27 +84,24 @@ public class MemoryReport {
     }
 
     public void getInputData(MemoryKey key) {
-        System.out.println("=====================================");
         for (String condition : key.getConditions()) {
             if(condition.isEmpty()) {
                 continue;
             }
-            System.out.println("Condition: " + condition);
+            System.out.println("\tCondition: " + condition);
             String[] variables = getVariablesCondition(condition);
 
             for (String variable : variables) {
-                System.out.println("\t Variable: " + variable);
+                System.out.println("\t\tVariable: " + variable);
                 LinkedList<String> setters = varsToInputs.get(variable);
                 if (setters != null) {
                     for (String input : setters) {
-                        System.out.println("\t\tWas set by: " + input);
+                        System.out.println("\t\t\tWas set by: " + input);
                     }
                 } else {
-                    System.out.println("\t\tWas not set by any input");
+                    System.out.println("\t\t\tWas not set by any input");
                 }
             }
-        System.out.println("=====================================");
-
         }
     }
 
