@@ -55,4 +55,16 @@ public class Sample {
         }
 
     }
+
+    public void testMethod() {
+        int[] array = new int[10];
+        int[] anotherArray = new int[5]
+    }
+
+    private void testMethod2() {
+        int[] array = new int[10];
+        int[] anotherArray = new int[5];
+        int[] yetAnotherArray = new int[2000];
+        short[] rickAndMorty = new short[1234];
+    }
 }

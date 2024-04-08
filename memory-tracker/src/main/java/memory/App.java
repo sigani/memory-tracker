@@ -4,9 +4,11 @@ package memory;
 
 import spoon.Launcher;
 import spoon.reflect.declaration.CtClass;
+import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.factory.Factory;
 
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * Hello world!
@@ -45,16 +47,38 @@ public class App
         }
 
         try {
-
-            MemoryScanner scanner = new MemoryScanner();
+            MemoryScanner scanner;
             final Factory factory = launcher.getFactory();
-            CtClass<?> sample = factory.Class().get("Sample");
-            sample.accept(scanner);
-            MemoryReport report = new MemoryReport(scanner);
 
+            System.out.println("Enter the class name you want to analyze: ");
+            String classname = CLIScanner.nextLine();
+
+            CtClass<?> clas = factory.Class().get(classname);
             boolean repeat = true;
 
             while (repeat){
+                Set<CtMethod<?>> methods = clas.getMethods();
+                scanner = new MemoryScanner();
+
+                int i = 1;
+                for (CtMethod<?> m : methods) {
+                    System.out.println("METHOD [" + i + "]: " + m.getSimpleName());
+                    i += 1;
+                }
+
+                System.out.println("Please select the number that represents the method you would like to analyze: ");
+                int methodnumber = Integer.parseInt(CLIScanner.nextLine());
+
+                if (methodnumber > methods.size() || methodnumber < 1) {
+                    System.out.println("Invalid method number. Please try again.");
+                    methodnumber = Integer.parseInt(CLIScanner.nextLine());
+                }
+
+                CtMethod<?> selectedMethod = (CtMethod<?>) methods.toArray()[methodnumber - 1];
+
+                selectedMethod.accept(scanner);
+                MemoryReport report = new MemoryReport(scanner);
+
                 System.out.println("Would you like to see branch condition that used the most memory? (Y/N)");
                 String response = CLIScanner.nextLine();
                 if (response.equals("Y") || response.equals("y")) {
