@@ -97,7 +97,20 @@ public class MemoryReport {
                 if (setters != null) {
                     for (String input : setters) {
                         System.out.println("\t\t\tWas set by: " + input);
+                        StringBuilder prefix = new StringBuilder();
+                        boolean keep = true;
+                        String previous = input;
+                        while (keep) {
+                            if (varsToInputs.get(input) != null) {
+                                prefix.append("\t");
+                                input = varsToInputs.get(input).getFirst();
+                                System.out.println(prefix + "\t\t\t"+ previous + " was set by: " + input);
+                            } else {
+                                keep = false;
+                            }
+                        }
                     }
+
                 } else {
                     System.out.println("\t\t\tWas not set by any input");
                 }

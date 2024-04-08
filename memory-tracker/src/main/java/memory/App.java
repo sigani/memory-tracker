@@ -21,7 +21,6 @@ public class App
         System.out.println("Enter the path to the JAVA file you want to analyze: ");
         System.out.println("Example: memory-tracker/src/toAnalyze/Sample.java");
         String path = CLIScanner.nextLine();
-
         boolean pathError = true;
 
         Launcher launcher = new Launcher();
