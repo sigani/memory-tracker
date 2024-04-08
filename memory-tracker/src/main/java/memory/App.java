@@ -79,26 +79,28 @@ public class App
                 selectedMethod.accept(scanner);
                 MemoryReport report = new MemoryReport(scanner);
 
+//                scanner.prettyPrintMap();
+
                 System.out.println("Would you like to see branch condition that used the most memory? (Y/N)");
                 String response = CLIScanner.nextLine();
                 if (response.equals("Y") || response.equals("y")) {
                     report.getExtremesReport(true);
                 }
 
-                System.out.println("Would you like to see branch condition that used the least memory? (Y/N)");
+                System.out.println("\nWould you like to see branch condition that used the least memory? (Y/N)");
                 response = CLIScanner.nextLine();
 
                 if (response.equals("Y") || response.equals("y")) {
                     report.getExtremesReport(false);
                 }
 
-                System.out.println("Would you like a comprehensive branch analysis? (Y/N)");
+                System.out.println("\nWould you like a comprehensive branch analysis? (Y/N)");
                 response = CLIScanner.nextLine();
                 if (response.equals("Y") || response.equals("y")) {
                     report.getComprehensiveReport();
                 }
 
-                System.out.println("Would you like to leave? (Y/N)");
+                System.out.println("\nWould you like to leave? (Y/N)");
                 response = CLIScanner.nextLine();
                 if (response.equals("Y") || response.equals("y")) {
                     repeat = false;

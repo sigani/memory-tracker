@@ -4,10 +4,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import utils.MemoryAlcValues;
 import utils.MemoryKey;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,11 +12,13 @@ public class MemoryReport {
 
     private final Map<MemoryKey, MemoryAlcValues> state;
     private final Map<String, LinkedList<String>> varsToInputs;
+    private final LinkedList<String> userInputs;
 
 
     public MemoryReport(MemoryScanner state) {
         this.state = state.getMemoryUsage();
         this.varsToInputs = state.getVarsToInputs();
+        this.userInputs = state.getUserInput();
     }
 
     public Pair<MemoryKey, Integer> getExtremesReport(Boolean isMax) {
@@ -34,10 +33,15 @@ public class MemoryReport {
             }
             // System.out.println("Total size: " + currentSize);
             if (isMax && (currentSize > biggestSize) || !isMax && (currentSize < biggestSize)) {
-                biggestSize = currentSize;
-                biggestKey = entry.getKey();
+                // we only care about branches that depend on user input
+                boolean validConditional = isValidConditional(entry);
+                if (validConditional) {
+                    biggestSize = currentSize;
+                    biggestKey = entry.getKey();
+                }
             }
         }
+        System.out.println("\n ");
 
         if (biggestKey == null) {
             System.out.println("No keys found");
@@ -56,6 +60,23 @@ public class MemoryReport {
         return Pair.of(biggestKey, biggestSize);
     }
 
+    private boolean isValidConditional(Map.Entry<MemoryKey, MemoryAlcValues> entry) {
+        String[] conditions = entry.getKey().getConditions();
+        boolean validConditional = false;
+        for(String t : conditions) {
+            String[] tokens = t.split("[\\s,\\[\\]()]+");
+            for(String tk : tokens) {
+                for(String var : this.userInputs) {
+                    if(tk.contains(var)) {
+                        validConditional = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return validConditional;
+    }
+
     public void getComprehensiveReport() {
         for (Map.Entry<MemoryKey, MemoryAlcValues> entry : state.entrySet()) {
             int currentSize = 0;
@@ -66,7 +87,7 @@ public class MemoryReport {
             System.out.println("BRANCH: " + Arrays.toString(entry.getKey().getConditions()));
             System.out.println("Uses " + currentSize + " bytes");
             getInputData(entry.getKey());
-
+            System.out.println("\n ");
         }
     }
 
@@ -112,7 +133,7 @@ public class MemoryReport {
                     }
 
                 } else {
-                    System.out.println("\t\t\tWas not set by any input");
+                    System.out.println("\t\t\tWas not set by any input or is from the parameter");
                 }
             }
         }

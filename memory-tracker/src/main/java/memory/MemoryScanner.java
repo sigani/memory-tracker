@@ -68,12 +68,9 @@ public class MemoryScanner extends CtScanner {
     }
 
     @Override
-    public <T> void visitCtField(CtField<T> f) {
-    }
-
-    @Override
     public <T> void visitCtParameter(CtParameter<T> parameter) {
         userInputs.push(parameter.getSimpleName());
+        super.visitCtParameter(parameter);
     }
 
     @Override
@@ -105,12 +102,16 @@ public class MemoryScanner extends CtScanner {
                 }
             }
         }
+        super.visitCtLocalVariable(localVariable);
 
     }
-    @Override
-    public <T> void visitCtInvocation(CtInvocation<T> invocation) {
-//        System.out.println(invocation);
-    }
+
+//    @Override
+//    public <R> void visitCtBlock(CtBlock<R> block) {
+////        System.out.println(block);
+////        System.out.println("--");
+////        super.visitCtBlock(block);
+//    }
 
     @Override
     public <T, A extends T> void visitCtAssignment(CtAssignment<T, A> assignement) {
@@ -140,14 +141,9 @@ public class MemoryScanner extends CtScanner {
                 }
             }
         }
-
+        super.visitCtAssignment(assignement);
     }
 
-    // todo: override visitCtWhile and analyze as well
-    // i forgot to do this, its probably similar to for loop
-
-    // todo: reconsider this function
-    // not too sure if this is sufficient for a loop
     @Override
     public void visitCtFor(CtFor forLoop) {
 
@@ -356,5 +352,19 @@ public class MemoryScanner extends CtScanner {
 
     public LinkedList<String> getUserInput() {
         return this.userInputs;
+    }
+
+    public void prettyPrintMap() {
+        for (Map.Entry<MemoryKey, MemoryAlcValues> entry : memoryUsage.entrySet()) {
+            System.out.println("Key: " + Arrays.toString(entry.getKey().getConditions()));
+            System.out.println("Values:");
+            LinkedList<Map<String,Integer>> linkedList = entry.getValue().getValues();
+            for (Map<String, Integer> innerMap : linkedList) {
+                System.out.println("\t" + innerMap);
+            }
+            System.out.println();
+        }
+        System.out.println(userInputs);
+        System.out.println(userConditionals);
     }
 }
