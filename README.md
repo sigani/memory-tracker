@@ -1,4 +1,7 @@
-# Group22Project2
+# Memory Tracker
+A static analysis tool for Java projects which informs users which branches take up the most/least amount of memory and which arguments passed through the methods will take them to that branch of code.  
+It can also give a comprehensive analysis of each branch.  
+
 ## Demo video
 https://github.com/sigani/memory-tracker/assets/82123942/5046835b-f32d-48da-842f-b91aa79bf5a5
 
