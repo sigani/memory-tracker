@@ -1,6 +1,6 @@
 # Group22Project2
 ## Demo video
-https://media.github.students.cs.ubc.ca/user/16124/files/bf0535c1-59b6-4a7d-a2b5-685c1e0e3577
+https://github.com/sigani/memory-tracker/assets/82123942/5046835b-f32d-48da-842f-b91aa79bf5a5
 
 ## How to setup project
 0) project is using version 21 of java (open sdk) and latest version of maven
